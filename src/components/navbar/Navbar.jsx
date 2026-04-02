@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import './navbar.css';
 import { assets } from '../../assets/assets';
 import { Link } from 'react-router-dom';
@@ -9,9 +9,13 @@ const Navbar = ({ setShowLogin }) => {
   const { getTotalCartAmount } = useContext(StoreContext);
 
   // Check login status
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("auth") === "true"
-  );
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Sync login status
+  useEffect(() => {
+    const auth = localStorage.getItem("auth");
+    setIsLoggedIn(auth === "true");
+  }, []);
 
   // Logout
   const handleLogout = () => {

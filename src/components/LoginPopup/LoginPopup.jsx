@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./LoginPopup.css";
 import { assets } from "../../assets/assets";
-import axios from "axios";
+// axios removed because backend not used now
 
 const LoginPopup = ({ setShowLogin }) => {
   const [currState, setCurrState] = useState("Login");
@@ -15,26 +15,45 @@ const LoginPopup = ({ setShowLogin }) => {
     e.preventDefault();
 
     try {
-      const url =
-        currState === "Login"
-          ? "http://localhost:4000/api/user/login"
-          : "http://localhost:4000/api/user/register";
+      // SIGN UP
+      if (currState === "Sign Up") {
+        const user = {
+          name,
+          email,
+          password,
+        };
 
-      const data =
-        currState === "Login"
-          ? { email, password }
-          : { name, email, password };
+        // Save user
+        localStorage.setItem("user", JSON.stringify(user));
 
-      const res = await axios.post(url, data);
+        alert("Account created successfully");
 
-      alert(res.data.message || "Success");
+        // Switch to login
+        setCurrState("Login");
+      }
 
-      // ADD THIS → save login status
-      localStorage.setItem("auth", "true");
+      // LOGIN
+      else {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
 
-      setShowLogin(false); // close popup
+        if (
+          storedUser &&
+          storedUser.email === email &&
+          storedUser.password === password
+        ) {
+          localStorage.setItem("auth", "true");
+
+          alert("Login successful");
+
+          setShowLogin(false); // close popup
+        } 
+        else {
+          alert("Invalid email or password");
+        }
+      }
+
     } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong");
+      alert("Something went wrong");
     }
   };
 
@@ -90,12 +109,16 @@ const LoginPopup = ({ setShowLogin }) => {
         {currState === "Login" ? (
           <p>
             Create a new account?{" "}
-            <span onClick={() => setCurrState("Sign Up")}>Click here</span>
+            <span onClick={() => setCurrState("Sign Up")}>
+              Click here
+            </span>
           </p>
         ) : (
           <p>
             Already have an account?{" "}
-            <span onClick={() => setCurrState("Login")}>Login here</span>
+            <span onClick={() => setCurrState("Login")}>
+              Login here
+            </span>
           </p>
         )}
       </form>
