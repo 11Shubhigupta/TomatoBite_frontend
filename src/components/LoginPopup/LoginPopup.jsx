@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import "./LoginPopup.css";
 import { assets } from "../../assets/assets";
-// axios removed because backend not used now
+import { StoreContext } from "../../context/StoreContext";
+import axios from "axios";
 
 const LoginPopup = ({ setShowLogin }) => {
+  const { url } = useContext(StoreContext);
   const [currState, setCurrState] = useState("Login");
 
   // form data
@@ -17,43 +19,44 @@ const LoginPopup = ({ setShowLogin }) => {
     try {
       // SIGN UP
       if (currState === "Sign Up") {
-        const user = {
+        const response = await axios.post(url + "/api/user/register", {
           name,
           email,
           password,
-        };
+        });
 
-        // Save user
-        localStorage.setItem("user", JSON.stringify(user));
-
-        alert("Account created successfully");
-
-        // Switch to login
-        setCurrState("Login");
+        if (response.data.success || response.status === 200) {
+          alert("Account created successfully");
+          // Switch to login
+          setCurrState("Login");
+        } else {
+          alert(response.data.message || "Failed to register");
+        }
       }
 
       // LOGIN
       else {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const response = await axios.post(url + "/api/user/login", {
+          email,
+          password,
+        });
 
-        if (
-          storedUser &&
-          storedUser.email === email &&
-          storedUser.password === password
-        ) {
+        if (response.data.success || response.status === 200) {
           localStorage.setItem("auth", "true");
+          // Save user email in localStorage so we can display details if needed
+          localStorage.setItem("user", JSON.stringify({ email }));
 
           alert("Login successful");
-
           setShowLogin(false); // close popup
-        } 
-        else {
-          alert("Invalid email or password");
+          window.location.reload(); // Refresh the page to trigger navbar status synchronization
+        } else {
+          alert(response.data.message || "Invalid email or password");
         }
       }
 
     } catch (err) {
-      alert("Something went wrong");
+      const errMsg = err.response?.data?.message || err.message || "Something went wrong";
+      alert(errMsg);
     }
   };
 
